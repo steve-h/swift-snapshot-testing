@@ -1,4 +1,7 @@
 import Foundation
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 
 extension Snapshotting where Value == URLRequest, Format == String {
   /// A snapshot strategy for comparing requests based on raw equality.
@@ -52,8 +55,8 @@ extension Snapshotting where Value == URLRequest, Format == String {
 
     // Headers
     if let headers = request.allHTTPHeaderFields {
-      for (field, value) in headers where field != "Cookie" {
-        let escapedValue = value.replacingOccurrences(of: "\"", with: "\\\"")
+      for field in headers.keys.sorted() where field != "Cookie" {
+        let escapedValue = headers[field]!.replacingOccurrences(of: "\"", with: "\\\"")
         components.append("--header \"\(field): \(escapedValue)\"")
       }
     }
@@ -63,7 +66,7 @@ extension Snapshotting where Value == URLRequest, Format == String {
       var escapedBody = httpBody.replacingOccurrences(of: "\\\"", with: "\\\\\"")
       escapedBody = escapedBody.replacingOccurrences(of: "\"", with: "\\\"")
       
-      components.append("--data '\(escapedBody)'")
+      components.append("--data \"\(escapedBody)\"")
     }
     
     // Cookies
